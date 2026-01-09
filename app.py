@@ -1,6 +1,7 @@
 import os
 import sqlite3
 import re
+import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -12,15 +13,56 @@ app.secret_key = "change_this_secret_key"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE = os.path.join(BASE_DIR, "database.db")
 
-ADMIN_PHOTO_FOLDER = os.path.join("static", "uploads", "admin_photos")
-os.makedirs(ADMIN_PHOTO_FOLDER, exist_ok=True)
-app.config["ADMIN_PHOTO_FOLDER"] = ADMIN_PHOTO_FOLDER
+UPLOAD_FOLDER = os.path.join("static", "uploads")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # ---------------- DATABASE ----------------
 def get_db():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
+
+# Ensure tables exist
+def ensure_tables():
+    conn = get_db()
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            email TEXT UNIQUE,
+            password TEXT,
+            role TEXT
+        )
+    """)
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS students (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            father_name TEXT,
+            roll_number TEXT,
+            registration_number TEXT,
+            email TEXT,
+            mobile TEXT,
+            course TEXT,
+            semester TEXT,
+            photo TEXT
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+ensure_tables()
+
+# ---------------- PASSWORD CHECK ----------------
+def strong_password(password):
+    return (
+        len(password) >= 8 and
+        re.search(r"[A-Z]", password) and
+        re.search(r"[a-z]", password) and
+        re.search(r"[0-9]", password) and
+        re.search(r"[^A-Za-z0-9]", password)
+    )
 
 # ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST", "HEAD"])
@@ -42,10 +84,37 @@ def login():
             session["user_id"] = user["id"]
             session["role"] = user["role"]
             return redirect(url_for("dashboard"))
-
-        flash("Invalid credentials", "error")
+        else:
+            flash("Invalid email or password", "error")
 
     return render_template("login.html")
+
+# ---------------- REGISTER ----------------
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        name = request.form.get("name")
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        if not strong_password(password):
+            flash("Password must be strong", "error")
+            return redirect(url_for("register"))
+
+        try:
+            conn = get_db()
+            conn.execute(
+                "INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)",
+                (name, email, generate_password_hash(password), "student")
+            )
+            conn.commit()
+            conn.close()
+            flash("Registration successful", "success")
+            return redirect(url_for("login"))
+        except:
+            flash("Email already exists", "error")
+
+    return render_template("register.html")
 
 # ---------------- DASHBOARD ----------------
 @app.route("/dashboard")
@@ -53,10 +122,7 @@ def dashboard():
     if "user_id" not in session:
         return redirect(url_for("login"))
 
-    if session["role"] == "admin":
-        return redirect(url_for("admin_dashboard"))
-
-    return "Student dashboard later"
+    return redirect("/admin" if session["role"] == "admin" else "/student-profile")
 
 # ---------------- ADMIN DASHBOARD ----------------
 @app.route("/admin")
@@ -64,69 +130,102 @@ def admin_dashboard():
     if session.get("role") != "admin":
         return redirect(url_for("login"))
 
-    return render_template("admin_dashboard.html")
-
-# ---------------- ADMIN PROFILE ----------------
-@app.route("/admin/profile")
-def admin_profile():
-    if session.get("role") != "admin":
-        return redirect(url_for("login"))
-
     conn = get_db()
-    admin = conn.execute(
-        "SELECT * FROM admins WHERE email = (SELECT email FROM users WHERE id=?)",
-        (session["user_id"],)
-    ).fetchone()
+    students = conn.execute("SELECT * FROM students").fetchall()
     conn.close()
 
-    return render_template("admin_profile.html", admin=admin)
+    return render_template("admin_dashboard.html", students=students)
 
-# ---------------- EDIT ADMIN PROFILE ----------------
-@app.route("/admin/profile/edit", methods=["GET", "POST"])
-def edit_admin_profile():
+# ---------------- ADD STUDENT ----------------
+@app.route("/add-student", methods=["GET", "POST"])
+def add_student():
     if session.get("role") != "admin":
         return redirect(url_for("login"))
-
-    conn = get_db()
-    email = conn.execute(
-        "SELECT email FROM users WHERE id=?",
-        (session["user_id"],)
-    ).fetchone()["email"]
-
-    admin = conn.execute(
-        "SELECT * FROM admins WHERE email=?",
-        (email,)
-    ).fetchone()
 
     if request.method == "POST":
-        name = request.form.get("name")
-        department = request.form.get("department")
-        post = request.form.get("post")
+        data = (
+            request.form.get("name"),
+            request.form.get("father_name"),
+            request.form.get("roll_number"),
+            request.form.get("registration_number"),
+            request.form.get("email"),
+            request.form.get("mobile"),
+            request.form.get("course"),
+            request.form.get("semester")
+        )
 
         photo = request.files.get("photo")
-        filename = admin["photo"] if admin else None
-
+        filename = None
         if photo and photo.filename:
             filename = secure_filename(photo.filename)
-            photo.save(os.path.join(app.config["ADMIN_PHOTO_FOLDER"], filename))
+            photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-        if admin:
-            conn.execute("""
-                UPDATE admins SET name=?, department=?, post=?, photo=?
-                WHERE email=?
-            """, (name, department, post, filename, email))
-        else:
-            conn.execute("""
-                INSERT INTO admins (name, department, post, photo, email)
-                VALUES (?,?,?,?,?)
-            """, (name, department, post, filename, email))
-
+        conn = get_db()
+        conn.execute("""
+            INSERT INTO students
+            (name,father_name,roll_number,registration_number,email,mobile,course,semester,photo)
+            VALUES (?,?,?,?,?,?,?,?,?)
+        """, data + (filename,))
         conn.commit()
         conn.close()
-        return redirect(url_for("admin_profile"))
 
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("add_student.html")
+
+# ---------------- EXCEL UPLOAD ----------------
+@app.route("/upload-excel", methods=["GET", "POST"])
+def upload_excel():
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        df = pd.read_excel(request.files["excel"])
+        conn = get_db()
+        for _, r in df.iterrows():
+            conn.execute("""
+                INSERT INTO students
+                (name,father_name,roll_number,registration_number,email,mobile,course,semester)
+                VALUES (?,?,?,?,?,?,?,?)
+            """, (
+                r["Name"], r["Father Name"], r["Roll Number"],
+                r["Registration Number"], r["Email"],
+                r["Mobile"], r["Course"], r["Semester"]
+            ))
+        conn.commit()
+        conn.close()
+        return redirect(url_for("admin_dashboard"))
+
+    return render_template("upload_excel.html")
+
+# ---------------- STUDENT PROFILE ----------------
+@app.route("/student-profile")
+def student_profile():
+    if session.get("role") != "student":
+        return redirect(url_for("login"))
+
+    conn = get_db()
+    student = conn.execute(
+        "SELECT * FROM students WHERE email = (SELECT email FROM users WHERE id = ?)",
+        (session["user_id"],)
+    ).fetchone()
     conn.close()
-    return render_template("edit_admin_profile.html", admin=admin)
+
+    if not student:
+        return "Student record not found. Please contact admin."
+
+    return render_template("student_profile.html", student=student)
+
+# ---------------- TEMP ADMIN ROUTE (USE ONCE) ----------------
+@app.route("/make-admin")
+def make_admin():
+    conn = get_db()
+    conn.execute(
+        "UPDATE users SET role='admin' WHERE email='sp6433057@gmail.com'"
+    )
+    conn.commit()
+    conn.close()
+    return "You are now admin. Please logout and login again."
 
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
