@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container" style="width:90%;">
+    <h2>Admin Dashboard</h2>
+
+    <a href="/add-student">Add Student</a> |
+    <a href="/upload-excel">Upload Excel</a> |
+    <a href="/admin-profile">Profile</a> |
+    <a href="/logout">Logout</a>
+
+    <br><br>
+
+    <table>
+        <tr>
+            <th>Photo</th>
+            <th>Name</th>
+            <th>Father</th>
+            <th>Roll No</th>
+            <th>Reg No</th>
+            <th>Email</th>
+            <th>Mobile</th>
+            <th>Course</th>
+            <th>Semester</th>
+            <th>Action</th>
+        </tr>
+
+        {% for s in students %}
+        <tr>
+            <td>
+                {% if s.photo %}
+                <img src="{{ url_for('static', filename='uploads/' + s.photo) }}" width="50">
+                {% else %} - {% endif %}
+            </td>
+            <td>{{ s.name }}</td>
+            <td>{{ s.father_name }}</td>
+            <td>{{ s.roll_number }}</td>
+            <td>{{ s.registration_number }}</td>
+            <td>{{ s.email }}</td>
+            <td>{{ s.mobile }}</td>
+            <td>{{ s.course }}</td>
+            <td>{{ s.semester }}</td>
+            <td>
+                <a href="/edit-student/{{ s.id }}">Edit</a> |
+                <a href="/delete-student/{{ s.id }}">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+</body>
+</html>

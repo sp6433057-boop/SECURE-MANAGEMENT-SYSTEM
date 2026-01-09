@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h2>Admin Profile</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <input name="name" value="{{ admin.name }}">
+        {% if admin.photo %}
+        <img src="{{ url_for('static', filename='uploads/' + admin.photo) }}" width="70">
+        {% endif %}
+        <input type="file" name="photo">
+        <button>Update Profile</button>
+    </form>
+
+    <a href="/admin">Back</a>
+</div>
+
+</body>
+</html>

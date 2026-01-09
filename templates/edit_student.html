@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Student</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h2>Edit Student</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <input name="name" value="{{ student.name }}">
+        <input name="father_name" value="{{ student.father_name }}">
+        <input name="roll_number" value="{{ student.roll_number }}">
+        <input name="registration_number" value="{{ student.registration_number }}">
+        <input name="email" value="{{ student.email }}">
+        <input name="mobile" value="{{ student.mobile }}">
+        <input name="course" value="{{ student.course }}">
+        <input name="semester" value="{{ student.semester }}">
+
+        <p>Current Photo:</p>
+        {% if student.photo %}
+        <img src="{{ url_for('static', filename='uploads/' + student.photo) }}" width="70">
+        {% endif %}
+
+        <input type="file" name="photo">
+        <button>Update Student</button>
+    </form>
+
+    <a href="/admin">Back</a>
+</div>
+
+</body>
+</html>

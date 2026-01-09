@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Admin Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h2>Edit Admin Profile</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <input type="text" name="name" placeholder="Name"
+               value="{{ admin.name if admin else '' }}" required>
+
+        <input type="text" name="department" placeholder="Department"
+               value="{{ admin.department if admin else '' }}" required>
+
+        <input type="text" name="post" placeholder="Post"
+               value="{{ admin.post if admin else '' }}" required>
+
+        <input type="file" name="photo">
+
+        <button type="submit">Save</button>
+    </form>
+
+    <br>
+    <a href="{{ url_for('admin_profile') }}">Cancel</a>
+</div>
+
+</body>
+</html>

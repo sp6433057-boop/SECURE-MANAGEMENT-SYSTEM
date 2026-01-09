@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Student</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h2>Add Student</h2>
+
+    <form method="POST" enctype="multipart/form-data">
+        <input name="name" placeholder="Name" required>
+        <input name="father_name" placeholder="Father Name" required>
+        <input name="roll_number" placeholder="Roll Number" required>
+        <input name="registration_number" placeholder="Registration Number" required>
+        <input name="email" placeholder="Email" required>
+        <input name="mobile" placeholder="Mobile" required>
+        <input name="course" placeholder="Course" required>
+        <input name="semester" placeholder="Semester" required>
+        <input type="file" name="photo">
+        <button>Add Student</button>
+    </form>
+
+    <a href="/admin">Back</a>
+</div>
+
+</body>
+</html>
