@@ -205,16 +205,25 @@ def student_profile():
         return redirect(url_for("login"))
 
     conn = get_db()
+
+    # Fetch student details using logged-in user's email
     student = conn.execute(
-        "SELECT * FROM students WHERE email = (SELECT email FROM users WHERE id = ?)",
+        """
+        SELECT * FROM students 
+        WHERE email = (
+            SELECT email FROM users WHERE id = ?
+        )
+        """,
         (session["user_id"],)
     ).fetchone()
+
     conn.close()
 
     if not student:
         return "Student record not found. Please contact admin."
 
     return render_template("student_profile.html", student=student)
+
 
 # ---------------- TEMP ADMIN ROUTE (USE ONCE) ----------------
 @app.route("/make-admin")
@@ -237,3 +246,4 @@ def logout():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
