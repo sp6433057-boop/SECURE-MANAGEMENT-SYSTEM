@@ -11,35 +11,29 @@
 
     <h2>Student Profile</h2>
 
-    <!-- PHOTO SECTION -->
+    <!-- PHOTO SECTION (SAFE) -->
     <div class="photo-section">
         {% if student.photo %}
-            <img src="{{ url_for('static', filename='uploads/' + student.photo) }}"
-     alt="Student Photo"
-     class="profile-img"
-     style="width:120px; height:160px; object-fit:cover; border-radius:6px;">
-
+            <img 
+                src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
+                alt="Student Photo"
+                class="profile-img"
+                style="width:120px; height:160px; object-fit:cover; border-radius:6px;">
+        {% else %}
+            <p class="no-photo">No photo uploaded</p>
+        {% endif %}
     </div>
 
     <!-- DETAILS SECTION -->
     <div class="details-section">
-
         <p><strong>Name:</strong> {{ student.name }}</p>
-
         <p><strong>Father Name:</strong> {{ student.father_name }}</p>
-
         <p><strong>Roll Number:</strong> {{ student.roll_number }}</p>
-
         <p><strong>Registration Number:</strong> {{ student.registration_number }}</p>
-
         <p><strong>Email:</strong> {{ student.email }}</p>
-
         <p><strong>Mobile:</strong> {{ student.mobile }}</p>
-
         <p><strong>Course:</strong> {{ student.course }}</p>
-
         <p><strong>Semester:</strong> {{ student.semester }}</p>
-
     </div>
 
     <!-- ACTIONS -->
@@ -51,4 +45,3 @@
 
 </body>
 </html>
-
