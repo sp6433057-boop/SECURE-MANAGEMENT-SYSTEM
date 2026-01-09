@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Student Profile</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -9,11 +10,27 @@
 <div class="container">
     <h2>Student Profile</h2>
 
-    <p><b>Name:</b> {{ student.name }}</p>
-    <p><b>Email:</b> {{ student.email }}</p>
-    <p><b>Role:</b> Student</p>
+    {% if student.photo %}
+        <div style="text-align:center; margin-bottom:15px;">
+            <img src="{{ url_for('static', filename='uploads/student_photos/' + student.photo) }}"
+                 width="130" style="border-radius:10px;">
+        </div>
+    {% endif %}
 
-    <a href="/logout">Logout</a>
+    <div class="profile-info">
+        <p><strong>Name:</strong> {{ student.name }}</p>
+        <p><strong>Father Name:</strong> {{ student.father_name }}</p>
+        <p><strong>Roll Number:</strong> {{ student.roll_number }}</p>
+        <p><strong>Registration Number:</strong> {{ student.registration_number }}</p>
+        <p><strong>Email:</strong> {{ student.email }}</p>
+        <p><strong>Mobile:</strong> {{ student.mobile }}</p>
+        <p><strong>Course:</strong> {{ student.course }}</p>
+        <p><strong>Semester:</strong> {{ student.semester }}</p>
+    </div>
+
+    <div style="text-align:center; margin-top:20px;">
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
 </div>
 
 </body>
