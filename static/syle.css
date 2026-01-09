@@ -211,3 +211,15 @@ input[type="file"] {
     }
 }
 
+
+/* ============================= */
+/* FORCE PASSPORT SIZE (FINAL)   */
+/* ============================= */
+
+.profile-container img.profile-img {
+    width: 120px !important;
+    height: 160px !important;
+    border-radius: 6px !important;
+    object-fit: cover !important;
+    border: 2px solid #4CAF50 !important;
+}
