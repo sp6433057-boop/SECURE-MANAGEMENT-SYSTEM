@@ -5,8 +5,7 @@
     box-sizing: border-box;
 }
 
-/* ================= GLOBAL IMAGE SAFETY (CRITICAL FIX) ================= */
-/* This prevents images from blowing up anywhere */
+/* ================= GLOBAL IMAGE SAFETY ================= */
 img {
     max-width: 100%;
     height: auto;
@@ -95,25 +94,38 @@ form input {
     overflow-x: auto;
 }
 
-table {
+.student-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
 }
 
-th, td {
+.student-table th,
+.student-table td {
     padding: 10px;
     border: 1px solid #ddd;
     text-align: center;
+    vertical-align: middle;
 }
 
-th {
+.student-table th {
     background-color: #f3f3f3;
 }
 
-/* ================= ADMIN PASSPORT PHOTO (FINAL, LOCKED) ================= */
-table img.passport-photo,
-table img.admin-photo {
+/* ================= ADMIN PHOTO FIX (PASSPORT SIZE) ================= */
+.photo-cell {
+    width: 80px;
+}
+
+.photo-wrapper {
+    width: 60px;
+    height: 80px;
+    margin: auto;
+    overflow: hidden;
+}
+
+.student-table img.passport-photo,
+.student-table img.admin-photo {
     width: 60px !important;
     height: 80px !important;
     max-width: 60px !important;
@@ -138,7 +150,6 @@ table img.admin-photo {
     margin-bottom: 20px;
 }
 
-/* ================= STUDENT PASSPORT PHOTO (FINAL, LOCKED) ================= */
 .profile-container img.profile-img {
     width: 120px !important;
     height: 160px !important;
@@ -167,8 +178,8 @@ table img.admin-photo {
         height: 130px !important;
     }
 
-    table img.passport-photo,
-    table img.admin-photo {
+    .student-table img.passport-photo,
+    .student-table img.admin-photo {
         width: 50px !important;
         height: 65px !important;
     }
