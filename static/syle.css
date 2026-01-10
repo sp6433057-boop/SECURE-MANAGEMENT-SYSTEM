@@ -211,6 +211,55 @@ input[type="file"] {
     }
 }
 
+.dashboard-container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
+}
+
+.admin-actions {
+    margin-bottom: 20px;
+}
+
+.admin-actions .btn {
+    margin-right: 10px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    text-align: center;
+}
+
+th {
+    background-color: #f3f3f3;
+}
+
+.table-photo {
+    width: 50px;
+    height: 65px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.small-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+.danger-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
 
 /* ============================= */
 /* FORCE PASSPORT SIZE (FINAL)   */
@@ -223,3 +272,4 @@ input[type="file"] {
     object-fit: cover !important;
     border: 2px solid #4CAF50 !important;
 }
+
