@@ -1,47 +1,17 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Student Profile</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
+<h2>Student Profile</h2>
 
-<div class="profile-container">
+{% if student.photo %}
+<img src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
+     style="width:120px;height:160px;object-fit:cover;border:2px solid green;">
+{% endif %}
 
-    <h2>Student Profile</h2>
+<p>Name: {{ student.name }}</p>
+<p>Father: {{ student.father_name }}</p>
+<p>Roll: {{ student.roll_number }}</p>
+<p>Reg: {{ student.registration_number }}</p>
+<p>Email: {{ student.email }}</p>
+<p>Mobile: {{ student.mobile }}</p>
+<p>Course: {{ student.course }}</p>
+<p>Semester: {{ student.semester }}</p>
 
-    <!-- PHOTO SECTION (SAFE) -->
-    <div class="photo-section">
-        {% if student.photo %}
-            <img 
-                src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
-                alt="Student Photo"
-                class="profile-img"
-                style="width:120px; height:160px; object-fit:cover; border-radius:6px;">
-        {% else %}
-            <p class="no-photo">No photo uploaded</p>
-        {% endif %}
-    </div>
-
-    <!-- DETAILS SECTION -->
-    <div class="details-section">
-        <p><strong>Name:</strong> {{ student.name }}</p>
-        <p><strong>Father Name:</strong> {{ student.father_name }}</p>
-        <p><strong>Roll Number:</strong> {{ student.roll_number }}</p>
-        <p><strong>Registration Number:</strong> {{ student.registration_number }}</p>
-        <p><strong>Email:</strong> {{ student.email }}</p>
-        <p><strong>Mobile:</strong> {{ student.mobile }}</p>
-        <p><strong>Course:</strong> {{ student.course }}</p>
-        <p><strong>Semester:</strong> {{ student.semester }}</p>
-    </div>
-
-    <!-- ACTIONS -->
-    <div class="actions">
-        <a href="{{ url_for('logout') }}" class="btn logout-btn">Logout</a>
-    </div>
-
-</div>
-
-</body>
-</html>
+<a href="{{ url_for('logout') }}">Logout</a>
