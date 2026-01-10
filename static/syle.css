@@ -1,32 +1,18 @@
-/* RESET */
+/* ================= RESET ================= */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* BODY */
+/* ================= BODY ================= */
 body {
     font-family: Arial, Helvetica, sans-serif;
     background-color: #f4f6f8;
     color: #333;
 }
 
-/* CONTAINER */
-.container {
-    max-width: 900px;
-    margin: 40px auto;
-    padding: 20px;
-}
-
-/* HEADINGS */
-h1, h2, h3 {
-    text-align: center;
-    margin-bottom: 20px;
-    color: #2c3e50;
-}
-
-/* BUTTONS */
+/* ================= BUTTONS ================= */
 button, .btn {
     padding: 10px 18px;
     background-color: #4CAF50;
@@ -50,7 +36,22 @@ button:hover, .btn:hover {
     background-color: #d32f2f;
 }
 
-/* FORMS */
+.small-btn {
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+.danger-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+/* ================= AUTH (LOGIN / REGISTER) ================= */
+.auth-container {
+    max-width: 400px;
+    margin: 80px auto;
+}
+
 form {
     background: white;
     padding: 25px;
@@ -58,164 +59,15 @@ form {
     box-shadow: 0 0 12px rgba(0,0,0,0.1);
 }
 
-form label {
-    font-weight: bold;
-    display: block;
-    margin-top: 12px;
-}
-
-form input, form select {
+form input {
     width: 100%;
     padding: 10px;
-    margin-top: 6px;
+    margin-top: 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
 }
 
-/* LOGIN / REGISTER */
-.auth-container {
-    max-width: 400px;
-    margin: 80px auto;
-}
-
-.auth-container h2 {
-    margin-bottom: 20px;
-}
-
-.auth-links {
-    text-align: center;
-    margin-top: 15px;
-}
-
-.auth-links a {
-    color: #4CAF50;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-/* DASHBOARD */
-.dashboard {
-    background: white;
-    padding: 25px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-
-.dashboard a {
-    display: inline-block;
-    margin: 8px;
-}
-
-/* TABLE */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-}
-
-table th, table td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: center;
-}
-
-table th {
-    background-color: #4CAF50;
-    color: white;
-}
-
-/* PROFILE PAGE */
-.profile-container {
-    max-width: 500px;
-    margin: 40px auto;
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.1);
-    text-align: center;
-}
-
-.photo-section {
-    margin-bottom: 20px;
-}
-
-.profile-img {
-    width: 120px;
-    height: 160px;
-    border-radius: 6px;          /* rectangle like passport */
-    object-fit: cover;
-    border: 2px solid #4CAF50;
-    background-color: #fff;
-}
-
-.no-photo {
-    color: red;
-    font-size: 14px;
-}
-
-/* DETAILS */
-.details-section {
-    text-align: left;
-}
-
-.details-section p {
-    margin: 8px 0;
-    font-size: 15px;
-}
-
-/* ACTIONS */
-.actions {
-    margin-top: 20px;
-    text-align: center;
-}
-
-/* ADMIN PROFILE */
-.admin-profile {
-    max-width: 600px;
-    margin: 40px auto;
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 0 12px rgba(0,0,0,0.1);
-}
-
-/* FILE INPUT */
-input[type="file"] {
-    padding: 6px;
-}
-
-/* MESSAGES */
-.success {
-    color: green;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.error {
-    color: red;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-/* RESPONSIVE */
-@media (max-width: 600px) {
-    .profile-img {
-        width: 100px;
-        height: 130px;
-    }
-
-    table {
-        font-size: 13px;
-    }
-}
-
-
-
-    table {
-        font-size: 13px;
-    }
-}
-
+/* ================= ADMIN DASHBOARD ================= */
 .dashboard-container {
     max-width: 1100px;
     margin: auto;
@@ -230,6 +82,7 @@ input[type="file"] {
     margin-right: 10px;
 }
 
+/* ================= TABLE ================= */
 .table-container {
     overflow-x: auto;
 }
@@ -237,10 +90,12 @@ input[type="file"] {
 table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 20px;
 }
 
 th, td {
     padding: 10px;
+    border: 1px solid #ddd;
     text-align: center;
 }
 
@@ -248,48 +103,63 @@ th {
     background-color: #f3f3f3;
 }
 
-.table-photo {
-    width: 50px;
-    height: 65px;
-    object-fit: cover;
-    border-radius: 4px;
-}
-
-.small-btn {
-    padding: 6px 10px;
-    font-size: 13px;
-}
-
-.danger-btn {
-    background-color: #e74c3c;
-    color: white;
-}
-
-
-/* ============================= */
-/* FORCE PASSPORT SIZE (FINAL)   */
-/* ============================= */
-
-.profile-container img.profile-img {
-    width: 120px !important;
-    height: 160px !important;
-    border-radius: 6px !important;
+/* ✅ ADMIN PASSPORT PHOTO (FINAL FIX) */
+.passport-photo {
+    width: 60px !important;
+    height: 80px !important;
     object-fit: cover !important;
+    border-radius: 4px !important;
     border: 2px solid #4CAF50 !important;
 }
 
-
-/* ============================= */
-/* ADMIN DASHBOARD PHOTO FIX    */
-/* ============================= */
-
-.passport-photo {
-    width: 60px;
-    height: 80px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 2px solid #4CAF50;
+/* ================= STUDENT PROFILE ================= */
+.profile-container {
+    max-width: 500px;
+    margin: 40px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    text-align: center;
 }
 
+.photo-section {
+    margin-bottom: 20px;
+}
 
+/* ✅ STUDENT PASSPORT PHOTO (FINAL FIX) */
+.profile-img {
+    width: 120px !important;
+    height: 160px !important;
+    object-fit: cover !important;
+    border-radius: 6px !important;
+    border: 2px solid #4CAF50 !important;
+}
 
+/* ================= DETAILS ================= */
+.details-section {
+    text-align: left;
+}
+
+.details-section p {
+    margin: 8px 0;
+    font-size: 15px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+
+    .profile-img {
+        width: 100px !important;
+        height: 130px !important;
+    }
+
+    .passport-photo {
+        width: 50px !important;
+        height: 65px !important;
+    }
+
+    table {
+        font-size: 13px;
+    }
+}
