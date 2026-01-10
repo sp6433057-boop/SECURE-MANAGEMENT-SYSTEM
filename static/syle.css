@@ -203,7 +203,12 @@ input[type="file"] {
         width: 100px;
         height: 130px;
     }
+
+    table {
+        font-size: 13px;
+    }
 }
+
 
 
     table {
@@ -285,5 +290,6 @@ th {
     border-radius: 4px;
     border: 2px solid #4CAF50;
 }
+
 
 
