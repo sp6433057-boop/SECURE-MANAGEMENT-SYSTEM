@@ -7,18 +7,30 @@ DATABASE = os.path.join(BASE_DIR, "database.db")
 conn = sqlite3.connect(DATABASE)
 cur = conn.cursor()
 
-# Users table
+# USERS TABLE
 cur.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT,
-    email TEXT UNIQUE,
-    password TEXT,
-    role TEXT
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL
 )
 """)
 
-# Students table
+# ADMINS TABLE
+cur.execute("""
+CREATE TABLE IF NOT EXISTS admins (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    department TEXT,
+    post TEXT,
+    photo TEXT,
+    email TEXT UNIQUE
+)
+""")
+
+# STUDENTS TABLE
 cur.execute("""
 CREATE TABLE IF NOT EXISTS students (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,7 +38,7 @@ CREATE TABLE IF NOT EXISTS students (
     father_name TEXT,
     roll_number TEXT,
     registration_number TEXT,
-    email TEXT,
+    email TEXT UNIQUE,
     mobile TEXT,
     course TEXT,
     semester TEXT,
@@ -37,4 +49,4 @@ CREATE TABLE IF NOT EXISTS students (
 conn.commit()
 conn.close()
 
-print("Database initialized successfully")
+print("Database tables ensured successfully")
