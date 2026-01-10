@@ -1,15 +1,43 @@
-<div class="profile-container">
-<img src="{{ url_for('static', filename='uploads/' ~ student.photo) }}" class="profile-img">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
 
-<div class="details-section">
-<p><b>Name:</b> {{ student.name }}</p>
-<p><b>Father:</b> {{ student.father_name }}</p>
-<p><b>Roll:</b> {{ student.roll_number }}</p>
-<p><b>Registration:</b> {{ student.registration_number }}</p>
-<p><b>Email:</b> {{ student.email }}</p>
-<p><b>Mobile:</b> {{ student.mobile }}</p>
-<p><b>Course:</b> {{ student.course }}</p>
-<p><b>Semester:</b> {{ student.semester }}</p>
-<p><b>Session:</b> {{ student.session }}</p>
+<div class="profile-container">
+
+    <!-- STUDENT PHOTO -->
+    <div class="photo-section">
+        {% if student.photo %}
+        <img src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
+             alt="Student Photo"
+             class="profile-img">
+        {% else %}
+        <p class="no-photo">No photo available</p>
+        {% endif %}
+    </div>
+
+    <!-- STUDENT DETAILS -->
+    <div class="details-section">
+        <p><strong>Name:</strong> {{ student.name }}</p>
+        <p><strong>Father Name:</strong> {{ student.father_name }}</p>
+        <p><strong>Roll Number:</strong> {{ student.roll_number }}</p>
+        <p><strong>Registration Number:</strong> {{ student.registration_number }}</p>
+        <p><strong>Email:</strong> {{ student.email }}</p>
+        <p><strong>Mobile:</strong> {{ student.mobile }}</p>
+        <p><strong>Course:</strong> {{ student.course }}</p>
+        <p><strong>Semester:</strong> {{ student.semester }}</p>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="actions">
+        <a href="{{ url_for('logout') }}" class="btn logout-btn">Logout</a>
+    </div>
+
 </div>
-</div>
+
+</body>
+</html>
