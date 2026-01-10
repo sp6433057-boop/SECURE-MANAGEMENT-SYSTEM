@@ -56,25 +56,42 @@ def login():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        name = request.form["name"]
-        email = request.form["email"]
-        password = generate_password_hash(request.form["password"])
+        name = request.form.get("name")
+        email = request.form.get("email")
+        password = request.form.get("password")
+
+        # Safety check (prevents KeyError)
+        if not name or not email or not password:
+            flash("All fields are required")
+            return redirect(url_for("register"))
+
+        hashed_password = generate_password_hash(password)
 
         try:
             conn = get_db()
             conn.execute(
                 "INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)",
-                (name, email, password, "student")
+                (name, email, hashed_password, "student")
             )
             conn.commit()
             conn.close()
+
+            flash("Registration successful. Please login.")
             return redirect(url_for("login"))
 
         except sqlite3.IntegrityError:
+            # Email already exists
             flash("Email already registered. Please login.")
             return redirect(url_for("login"))
 
+        except Exception as e:
+            # Any other unexpected error
+            print("REGISTER ERROR:", e)
+            flash("Something went wrong. Try again.")
+            return redirect(url_for("register"))
+
     return render_template("register.html")
+
 
 
 # ---------------- ADMIN DASHBOARD ----------------
@@ -187,6 +204,7 @@ def logout():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000, debug=True)
+
 
 
 
