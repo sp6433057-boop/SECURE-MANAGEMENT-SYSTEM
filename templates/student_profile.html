@@ -9,8 +9,8 @@
 
 <div class="profile-container">
 
-    <!-- STUDENT PHOTO -->
-    <div class="photo-section">
+    <!-- PROFILE PHOTO CENTERED -->
+    <div style="text-align:center; margin-bottom:25px;">
         {% if student.photo %}
         <img
             src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
@@ -21,8 +21,7 @@
                 object-fit:cover;
                 border:2px solid #4CAF50;
                 border-radius:6px;
-                display:block;
-                margin:0 auto;
+                display:inline-block;
             ">
         {% else %}
         <p class="no-photo">No photo available</p>
@@ -42,7 +41,7 @@
     </div>
 
     <!-- ACTIONS -->
-    <div class="actions">
+    <div class="actions" style="text-align:center; margin-top:25px;">
         <a href="{{ url_for('logout') }}" class="btn logout-btn">Logout</a>
     </div>
 
