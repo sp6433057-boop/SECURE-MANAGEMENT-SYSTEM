@@ -20,7 +20,7 @@
 
     <!-- STUDENT TABLE -->
     <div class="table-container">
-        <table>
+        <table class="student-table">
             <thead>
                 <tr>
                     <th>Photo</th>
@@ -39,17 +39,19 @@
             <tbody>
                 {% for student in students %}
                 <tr>
-                    <td>
+                    <td class="photo-cell">
                         {% if student.photo %}
-                        <img
-    src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
-    class="passport-photo admin-photo"
-    alt="Student Photo">
-
+                        <div class="photo-wrapper">
+                            <img
+                                src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
+                                class="passport-photo admin-photo"
+                                alt="Student Photo">
+                        </div>
                         {% else %}
                         N/A
                         {% endif %}
                     </td>
+
                     <td>{{ student.name }}</td>
                     <td>{{ student.father_name }}</td>
                     <td>{{ student.roll_number }}</td>
@@ -58,6 +60,7 @@
                     <td>{{ student.mobile }}</td>
                     <td>{{ student.course }}</td>
                     <td>{{ student.semester }}</td>
+
                     <td>
                         <a href="{{ url_for('edit_student', student_id=student.id) }}"
                            class="btn small-btn">Edit</a>
@@ -82,4 +85,3 @@
 
 </body>
 </html>
-
