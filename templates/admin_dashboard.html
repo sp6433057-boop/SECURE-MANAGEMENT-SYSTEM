@@ -13,9 +13,9 @@
 
     <!-- TOP ACTIONS -->
     <div class="admin-actions">
-        <a href="{{ url_for('add_student') }}" class="btn action-btn add-btn">Add Student</a>
-        <a href="{{ url_for('admin_profile') }}" class="btn action-btn profile-btn">My Profile</a>
-        <a href="{{ url_for('logout') }}" class="btn action-btn logout-btn">Logout</a>
+        <a href="{{ url_for('add_student') }}" class="btn">➕ Add Student</a>
+        <a href="{{ url_for('admin_profile') }}" class="btn">👤 My Profile</a>
+        <a href="{{ url_for('logout') }}" class="btn logout-btn">🚪 Logout</a>
     </div>
 
     <!-- STUDENT TABLE -->
@@ -25,9 +25,9 @@
                 <tr>
                     <th>Photo</th>
                     <th>Name</th>
-                    <th>Father</th>
+                    <th>Father Name</th>
                     <th>Roll No</th>
-                    <th>Reg No</th>
+                    <th>Registration No</th>
                     <th>Email</th>
                     <th>Mobile</th>
                     <th>Course</th>
@@ -40,15 +40,23 @@
                 {% for student in students %}
                 <tr>
 
-                    <!-- PHOTO -->
-                    <td class="photo-cell">
+                    <!-- PHOTO (INLINE SIZE – FINAL FIX) -->
+                    <td style="width:80px;">
                         {% if student.photo %}
                         <img
                             src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
                             alt="Student Photo"
-                            class="passport-thumb">
+                            style="
+                                width:60px;
+                                height:80px;
+                                object-fit:cover;
+                                border:2px solid #4CAF50;
+                                border-radius:4px;
+                                display:block;
+                                margin:auto;
+                            ">
                         {% else %}
-                        —
+                        N/A
                         {% endif %}
                     </td>
 
@@ -61,16 +69,15 @@
                     <td>{{ student.course }}</td>
                     <td>{{ student.semester }}</td>
 
-                    <!-- ACTIONS -->
-                    <td class="action-cell">
+                    <td>
                         <a href="{{ url_for('edit_student', student_id=student.id) }}"
-                           class="btn table-btn edit-btn">Edit</a>
+                           class="btn small-btn">Edit</a>
 
                         <form action="{{ url_for('delete_student', student_id=student.id) }}"
                               method="POST"
                               style="display:inline;">
                             <button type="submit"
-                                    class="btn table-btn delete-btn"
+                                    class="btn small-btn danger-btn"
                                     onclick="return confirm('Delete this student?')">
                                 Delete
                             </button>
