@@ -33,18 +33,24 @@ def login():
         ).fetchone()
         conn.close()
 
-        if user and check_password_hash(user["password"], password):
-            session["user_id"] = user["id"]
-            session["role"] = user["role"]
+        if not user:
+            flash("User not found")
+            return redirect(url_for("login"))
 
-            if user["role"] == "admin":
-                return redirect(url_for("admin_dashboard"))
-            else:
-                return redirect(url_for("student_profile"))
+        if not check_password_hash(user["password"], password):
+            flash("Incorrect password")
+            return redirect(url_for("login"))
 
-        flash("Invalid credentials")
+        session["user_id"] = user["id"]
+        session["role"] = user["role"]
+
+        if user["role"] == "admin":
+            return redirect(url_for("admin_dashboard"))
+        else:
+            return redirect(url_for("student_profile"))
 
     return render_template("login.html")
+
 
 # ---------------- REGISTER ----------------
 @app.route("/register", methods=["GET", "POST"])
@@ -54,16 +60,22 @@ def register():
         email = request.form["email"]
         password = generate_password_hash(request.form["password"])
 
-        conn = get_db()
-        conn.execute(
-            "INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)",
-            (name, email, password, "student")
-        )
-        conn.commit()
-        conn.close()
-        return redirect(url_for("login"))
+        try:
+            conn = get_db()
+            conn.execute(
+                "INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)",
+                (name, email, password, "student")
+            )
+            conn.commit()
+            conn.close()
+            return redirect(url_for("login"))
+
+        except sqlite3.IntegrityError:
+            flash("Email already registered. Please login.")
+            return redirect(url_for("login"))
 
     return render_template("register.html")
+
 
 # ---------------- ADMIN DASHBOARD ----------------
 @app.route("/admin")
@@ -175,3 +187,4 @@ def logout():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
