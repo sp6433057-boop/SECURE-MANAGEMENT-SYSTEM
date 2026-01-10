@@ -2,28 +2,29 @@
 <html>
 <head>
     <title>Add Student</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<div class="container">
-    <h2>Add Student</h2>
+<h2>Add Student</h2>
 
-    <form method="POST" enctype="multipart/form-data">
-        <input name="name" placeholder="Name" required>
-        <input name="father_name" placeholder="Father Name" required>
-        <input name="roll_number" placeholder="Roll Number" required>
-        <input name="registration_number" placeholder="Registration Number" required>
-        <input name="email" placeholder="Email" required>
-        <input name="mobile" placeholder="Mobile" required>
-        <input name="course" placeholder="Course" required>
-        <input name="semester" placeholder="Semester" required>
-        <input type="file" name="photo">
-        <button>Add Student</button>
-    </form>
+<form method="POST" enctype="multipart/form-data">
 
-    <a href="/admin">Back</a>
-</div>
+    <input name="name" placeholder="Student Name" required><br><br>
+    <input name="father_name" placeholder="Father Name"><br><br>
+    <input name="roll_number" placeholder="Roll Number"><br><br>
+    <input name="registration_number" placeholder="Registration Number"><br><br>
+    <input name="email" type="email" placeholder="Email" required><br><br>
+    <input name="mobile" placeholder="Mobile"><br><br>
+    <input name="course" placeholder="Course"><br><br>
+    <input name="semester" placeholder="Semester"><br><br>
+
+    <input type="file" name="photo"><br><br>
+
+    <button type="submit">Add Student</button>
+</form>
+
+<br>
+<a href="{{ url_for('admin_dashboard') }}">Back</a>
 
 </body>
 </html>
