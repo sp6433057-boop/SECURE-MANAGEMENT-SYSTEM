@@ -41,8 +41,11 @@
                 <tr>
                     <td>
                         {% if student.photo %}
-                        <img src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
-                             class="passport-photo">
+                        <img
+    src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
+    class="passport-photo admin-photo"
+    alt="Student Photo">
+
                         {% else %}
                         N/A
                         {% endif %}
@@ -79,3 +82,4 @@
 
 </body>
 </html>
+
