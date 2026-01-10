@@ -12,9 +12,18 @@
     <!-- STUDENT PHOTO -->
     <div class="photo-section">
         {% if student.photo %}
-        <img src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
-             alt="Student Photo"
-             class="profile-img">
+        <img
+            src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
+            alt="Student Photo"
+            style="
+                width:120px;
+                height:160px;
+                object-fit:cover;
+                border:2px solid #4CAF50;
+                border-radius:6px;
+                display:block;
+                margin:0 auto;
+            ">
         {% else %}
         <p class="no-photo">No photo available</p>
         {% endif %}
