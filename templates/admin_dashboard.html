@@ -25,9 +25,9 @@
                 <tr>
                     <th>Photo</th>
                     <th>Name</th>
-                    <th>Father</th>
+                    <th>Father Name</th>
                     <th>Roll No</th>
-                    <th>Reg No</th>
+                    <th>Registration No</th>
                     <th>Email</th>
                     <th>Mobile</th>
                     <th>Course</th>
@@ -39,14 +39,22 @@
             <tbody>
                 {% for student in students %}
                 <tr>
-                    <td class="photo-cell">
+
+                    <!-- PHOTO (INLINE SIZE – FINAL FIX) -->
+                    <td style="width:80px;">
                         {% if student.photo %}
-                        <div class="photo-wrapper">
-                            <img
-                                src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
-                                class="passport-photo admin-photo"
-                                alt="Student Photo">
-                        </div>
+                        <img
+                            src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
+                            alt="Student Photo"
+                            style="
+                                width:60px;
+                                height:80px;
+                                object-fit:cover;
+                                border:2px solid #4CAF50;
+                                border-radius:4px;
+                                display:block;
+                                margin:auto;
+                            ">
                         {% else %}
                         N/A
                         {% endif %}
@@ -75,6 +83,7 @@
                             </button>
                         </form>
                     </td>
+
                 </tr>
                 {% endfor %}
             </tbody>
