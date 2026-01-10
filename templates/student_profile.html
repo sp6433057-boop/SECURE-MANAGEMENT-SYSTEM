@@ -1,17 +1,15 @@
-<h2>Student Profile</h2>
+<div class="profile-container">
+<img src="{{ url_for('static', filename='uploads/' ~ student.photo) }}" class="profile-img">
 
-{% if student.photo %}
-<img src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
-     style="width:120px;height:160px;object-fit:cover;border:2px solid green;">
-{% endif %}
-
-<p>Name: {{ student.name }}</p>
-<p>Father: {{ student.father_name }}</p>
-<p>Roll: {{ student.roll_number }}</p>
-<p>Reg: {{ student.registration_number }}</p>
-<p>Email: {{ student.email }}</p>
-<p>Mobile: {{ student.mobile }}</p>
-<p>Course: {{ student.course }}</p>
-<p>Semester: {{ student.semester }}</p>
-
-<a href="{{ url_for('logout') }}">Logout</a>
+<div class="details-section">
+<p><b>Name:</b> {{ student.name }}</p>
+<p><b>Father:</b> {{ student.father_name }}</p>
+<p><b>Roll:</b> {{ student.roll_number }}</p>
+<p><b>Registration:</b> {{ student.registration_number }}</p>
+<p><b>Email:</b> {{ student.email }}</p>
+<p><b>Mobile:</b> {{ student.mobile }}</p>
+<p><b>Course:</b> {{ student.course }}</p>
+<p><b>Semester:</b> {{ student.semester }}</p>
+<p><b>Session:</b> {{ student.session }}</p>
+</div>
+</div>
