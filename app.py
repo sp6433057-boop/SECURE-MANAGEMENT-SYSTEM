@@ -254,6 +254,52 @@ def student_profile():
     return render_template("student_profile.html", student=student)
 
 
+# ---------------- ADD STUDENT ----------------
+@app.route("/admin/student/add", methods=["GET", "POST"])
+def add_student():
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        father_name = request.form.get("father_name")
+        roll_number = request.form.get("roll_number")
+        registration_number = request.form.get("registration_number")
+        email = request.form.get("email")
+        mobile = request.form.get("mobile")
+        course = request.form.get("course")
+        semester = request.form.get("semester")
+
+        photo = request.files.get("photo")
+        filename = None
+
+        if photo and photo.filename:
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+        conn = get_db()
+        try:
+            conn.execute("""
+                INSERT INTO students
+                (name, father_name, roll_number, registration_number,
+                 email, mobile, course, semester, photo)
+                VALUES (?,?,?,?,?,?,?,?,?)
+            """, (
+                name, father_name, roll_number, registration_number,
+                email, mobile, course, semester, filename
+            ))
+            conn.commit()
+            conn.close()
+            flash("Student added successfully")
+            return redirect(url_for("admin_dashboard"))
+
+        except sqlite3.IntegrityError:
+            conn.close()
+            flash("Student with this email already exists")
+            return redirect(url_for("add_student"))
+
+    return render_template("add_student.html")
+
 #------------------- make admin ---------------
 @app.route("/make-admin")
 def make_admin():
@@ -276,4 +322,5 @@ def logout():
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
