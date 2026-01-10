@@ -254,6 +254,18 @@ def student_profile():
     return render_template("student_profile.html", student=student)
 
 
+#------------------- make admin ---------------
+@app.route("/make-admin")
+def make_admin():
+    conn = get_db()
+    conn.execute(
+        "UPDATE users SET role='admin' WHERE email='sp6433057@gmail.com'"
+    )
+    conn.commit()
+    conn.close()
+    return "You are now admin. Logout and login again."
+
+
 # ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
@@ -264,3 +276,4 @@ def logout():
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
