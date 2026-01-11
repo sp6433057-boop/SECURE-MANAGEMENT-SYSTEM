@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS students (
     mobile TEXT,
     course TEXT,
     semester TEXT,
+    session TEXT,
     photo TEXT
 )
 """)
@@ -50,3 +51,4 @@ conn.commit()
 conn.close()
 
 print("Database tables ensured successfully")
+
