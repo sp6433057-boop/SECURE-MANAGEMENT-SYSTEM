@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
-# ================= APP CONFIG =================
+# ---------------- APP CONFIG ----------------
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
@@ -16,7 +16,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
-# ================= DATABASE =================
+# ---------------- DATABASE ----------------
 def get_db():
     conn = sqlite3.connect(DATABASE, timeout=10)
     conn.row_factory = sqlite3.Row
@@ -68,11 +68,11 @@ def init_db():
     conn.close()
 
 
-# Create tables on startup
+# CREATE TABLES ON STARTUP
 init_db()
 
 
-# ================= LOGIN =================
+# ---------------- LOGIN ----------------
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -98,12 +98,13 @@ def login():
 
         if user["role"] == "admin":
             return redirect(url_for("admin_dashboard"))
-        return redirect(url_for("student_profile"))
+        else:
+            return redirect(url_for("student_profile"))
 
     return render_template("login.html")
 
 
-# ================= REGISTER =================
+# ---------------- REGISTER ----------------
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -125,6 +126,7 @@ def register():
             )
             conn.commit()
             conn.close()
+
             flash("Registration successful. Please login.")
             return redirect(url_for("login"))
 
@@ -132,33 +134,15 @@ def register():
             flash("Email already registered.")
             return redirect(url_for("login"))
 
+        except Exception as e:
+            print("REGISTER ERROR:", e)
+            flash("Something went wrong.")
+            return redirect(url_for("register"))
+
     return render_template("register.html")
 
 
-# ================= PROMOTE ME =================
-@app.route("/promote-me")
-def promote_me():
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("SELECT id FROM users WHERE email=?", ("sp6433057@gmail.com",))
-    user = cur.fetchone()
-
-    if not user:
-        conn.close()
-        return "Please register first with this email."
-
-    cur.execute(
-        "UPDATE users SET role='admin' WHERE email=?",
-        ("sp6433057@gmail.com",)
-    )
-
-    conn.commit()
-    conn.close()
-    return "You are now an admin. Please log in again."
-
-
-# ================= ADMIN DASHBOARD =================
+# ---------------- ADMIN DASHBOARD ----------------
 @app.route("/admin")
 def admin_dashboard():
     if session.get("role") != "admin":
@@ -171,54 +155,13 @@ def admin_dashboard():
     return render_template("admin_dashboard.html", students=students)
 
 
-# ================= ADMIN PROFILE =================
-@app.route("/admin/profile", methods=["GET", "POST"])
+# ---------------- ADMIN PROFILE ----------------
+@app.route("/admin/profile")
 def admin_profile():
     if session.get("role") != "admin":
         return redirect(url_for("login"))
 
     conn = get_db()
-
-    if request.method == "POST":
-        name = request.form.get("name")
-        department = request.form.get("department")
-        post = request.form.get("post")
-
-        photo = request.files.get("photo")
-        filename = None
-
-        if photo and photo.filename:
-            filename = secure_filename(photo.filename)
-            photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
-        admin = conn.execute(
-            "SELECT * FROM admins WHERE email=(SELECT email FROM users WHERE id=?)",
-            (session["user_id"],)
-        ).fetchone()
-
-        if admin:
-            conn.execute("""
-                UPDATE admins SET
-                name=?, department=?, post=?, photo=?
-                WHERE email=(SELECT email FROM users WHERE id=?)
-            """, (
-                name, department, post, filename,
-                session["user_id"]
-            ))
-        else:
-            conn.execute("""
-                INSERT INTO admins (name, department, post, photo, email)
-                VALUES (?, ?, ?, ?, (SELECT email FROM users WHERE id=?))
-            """, (
-                name, department, post, filename,
-                session["user_id"]
-            ))
-
-        conn.commit()
-        conn.close()
-        flash("Profile updated successfully")
-        return redirect(url_for("admin_profile"))
-
     admin = conn.execute(
         "SELECT * FROM admins WHERE email=(SELECT email FROM users WHERE id=?)",
         (session["user_id"],)
@@ -228,7 +171,7 @@ def admin_profile():
     return render_template("admin_profile.html", admin=admin)
 
 
-# ================= ADD STUDENT =================
+# ---------------- ADD STUDENT ----------------
 @app.route("/admin/student/add", methods=["GET", "POST"])
 def add_student():
     if session.get("role") != "admin":
@@ -242,8 +185,8 @@ def add_student():
             filename = secure_filename(photo.filename)
             photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-        conn = get_db()
         try:
+            conn = get_db()
             conn.execute("""
                 INSERT INTO students
                 (name, father_name, roll_number, registration_number,
@@ -274,7 +217,7 @@ def add_student():
     return render_template("add_student.html")
 
 
-# ================= EDIT STUDENT =================
+# ---------------- EDIT STUDENT ----------------
 @app.route("/admin/student/edit/<int:student_id>", methods=["GET", "POST"])
 def edit_student(student_id):
     if session.get("role") != "admin":
@@ -324,7 +267,7 @@ def edit_student(student_id):
     return render_template("edit_student.html", student=student)
 
 
-# ================= DELETE STUDENT =================
+# ---------------- DELETE STUDENT ----------------
 @app.route("/admin/student/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
     if session.get("role") != "admin":
@@ -338,7 +281,7 @@ def delete_student(student_id):
     return redirect(url_for("admin_dashboard"))
 
 
-# ================= STUDENT PROFILE =================
+# ---------------- STUDENT PROFILE ----------------
 @app.route("/student-profile")
 def student_profile():
     if session.get("role") != "student":
@@ -360,13 +303,36 @@ def student_profile():
     return render_template("student_profile.html", student=student)
 
 
-# ================= LOGOUT =================
+# ---------------- PROMOTE ME (SAFE VERSION) ----------------
+@app.route("/promote-me")
+def promote_me():
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id FROM users WHERE email=?", ("sp6433057@gmail.com",))
+    user = cur.fetchone()
+
+    if not user:
+        conn.close()
+        return "User not registered yet."
+
+    cur.execute(
+        "UPDATE users SET role='admin' WHERE email=?",
+        ("sp6433057@gmail.com",)
+    )
+
+    conn.commit()
+    conn.close()
+    return "You are now an admin. Please log in again."
+
+
+# ---------------- LOGOUT ----------------
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
 
 
-# ================= RUN =================
+# ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
