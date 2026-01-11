@@ -303,32 +303,22 @@ def student_profile():
     return render_template("student_profile.html", student=student)
 
 
-# ---------------- MAKE ADMIN (ONE TIME) ----------------
-@app.route("/make-admin")
-def make_admin():
+# ---------------- PROMOTE ME ----------------
+@app.route("/promote-me")
+def promote_me():
     conn = get_db()
     cur = conn.cursor()
 
-    cur.execute("SELECT id FROM users WHERE email=?", ("sp6433057@gmail.com",))
-    if cur.fetchone():
-        conn.close()
-        return "Admin already exists. Please login."
-
-    hashed_password = generate_password_hash("admin123")
-
-    cur.execute("""
-        INSERT INTO users (name, email, password, role)
-        VALUES (?, ?, ?, ?)
-    """, (
-        "Sahil Patel",
-        "sp6433057@gmail.com",
-        hashed_password,
-        "admin"
-    ))
+    cur.execute(
+        "UPDATE users SET role='admin' WHERE email=?",
+        ("sp6433057@gmail.com",)
+    )
 
     conn.commit()
     conn.close()
-    return "Admin created successfully. You can now log in."
+
+    return "You are now an admin. Please log in again."
+
 
 
 # ---------------- LOGOUT ----------------
@@ -341,3 +331,4 @@ def logout():
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
