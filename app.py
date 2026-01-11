@@ -156,12 +156,56 @@ def admin_dashboard():
 
 
 # ---------------- ADMIN PROFILE ----------------
-@app.route("/admin/profile")
+@app.route("/admin/profile", methods=["GET", "POST"])
 def admin_profile():
     if session.get("role") != "admin":
         return redirect(url_for("login"))
 
     conn = get_db()
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        department = request.form.get("department")
+        post = request.form.get("post")
+
+        photo = request.files.get("photo")
+        filename = None
+
+        if photo and photo.filename:
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+        # check if admin profile already exists
+        admin = conn.execute(
+            "SELECT * FROM admins WHERE email=(SELECT email FROM users WHERE id=?)",
+            (session["user_id"],)
+        ).fetchone()
+
+        if admin:
+            conn.execute("""
+                UPDATE admins SET
+                name=?, department=?, post=?, photo=?
+                WHERE email=(SELECT email FROM users WHERE id=?)
+            """, (
+                name, department, post, filename,
+                session["user_id"]
+            ))
+        else:
+            conn.execute("""
+                INSERT INTO admins (name, department, post, photo, email)
+                VALUES (?, ?, ?, ?, (SELECT email FROM users WHERE id=?))
+            """, (
+                name, department, post, filename,
+                session["user_id"]
+            ))
+
+        conn.commit()
+        conn.close()
+
+        flash("Profile updated successfully")
+        return redirect(url_for("admin_profile"))
+
+    # GET request
     admin = conn.execute(
         "SELECT * FROM admins WHERE email=(SELECT email FROM users WHERE id=?)",
         (session["user_id"],)
@@ -169,6 +213,7 @@ def admin_profile():
     conn.close()
 
     return render_template("admin_profile.html", admin=admin)
+
 
 
 # ---------------- ADD STUDENT ----------------
@@ -336,3 +381,4 @@ def logout():
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
