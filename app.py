@@ -89,6 +89,8 @@ def login():
 
         session["user_id"] = user["id"]
         session["role"] = user["role"]
+        session["user_email"] = user["email"]
+
 
         if user["role"] == "admin":
             return redirect(url_for("admin_dashboard"))
@@ -341,3 +343,4 @@ def logout():
 # ================= RUN =================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
