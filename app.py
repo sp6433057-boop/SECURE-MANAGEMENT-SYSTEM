@@ -312,12 +312,22 @@ def add_student():
 @app.route("/make-admin")
 def make_admin():
     conn = get_db()
-    conn.execute(
-        "UPDATE users SET role='admin' WHERE email='sp6433057@gmail.com'"
-    )
+    cur = conn.cursor()
+
+    cur.execute("""
+    INSERT OR IGNORE INTO users (name, email, password, role)
+    VALUES (?, ?, ?, ?)
+    """, (
+        "Sahil Patel",
+        "sp6433057@gmail.com",
+        "admin123",
+        "admin"
+    ))
+
     conn.commit()
     conn.close()
-    return "You are now admin. Logout and login again."
+    return "Admin created successfully. You can now log in."
+
 
 
 # ---------------- LOGOUT ----------------
@@ -330,6 +340,7 @@ def logout():
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
 
 
