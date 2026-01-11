@@ -18,7 +18,7 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # ================= DATABASE =================
 def get_db():
-    conn = sqlite3.connect(DATABASE, timeout=10)
+    conn = sqlite3.connect(DATABASE, timeout=15)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
     return conn
@@ -33,7 +33,7 @@ def init_db():
             name TEXT NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
-            role TEXT NOT NULL
+            role TEXT NOT NULL DEFAULT 'student'
         )
     """)
 
@@ -74,8 +74,12 @@ init_db()
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "").strip()
+
+        if not email or not password:
+            flash("Please enter email and password")
+            return redirect(url_for("login"))
 
         conn = get_db()
         user = conn.execute(
@@ -83,14 +87,20 @@ def login():
         ).fetchone()
         conn.close()
 
-        if not user or not check_password_hash(user["password"], password):
+        if not user:
             flash("Invalid email or password")
             return redirect(url_for("login"))
 
+        if not check_password_hash(user["password"], password):
+            flash("Invalid email or password")
+            return redirect(url_for("login"))
+
+        session.clear()
         session["user_id"] = user["id"]
         session["role"] = user["role"]
         session["user_email"] = user["email"]
 
+        flash("Login successful")
 
         if user["role"] == "admin":
             return redirect(url_for("admin_dashboard"))
@@ -103,29 +113,35 @@ def login():
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        name = request.form.get("name")
-        email = request.form.get("email")
-        password = request.form.get("password")
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip()
+        password = request.form.get("password", "").strip()
 
         if not name or not email or not password:
             flash("All fields are required")
             return redirect(url_for("register"))
 
-        hashed = generate_password_hash(password)
+        hashed_password = generate_password_hash(password)
 
         try:
             conn = get_db()
             conn.execute(
                 "INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)",
-                (name, email, hashed, "student")
+                (name, email, hashed_password, "student")
             )
             conn.commit()
             conn.close()
-            flash("Registration successful")
+
+            flash("Registration successful. Please login.")
             return redirect(url_for("login"))
+
         except sqlite3.IntegrityError:
             flash("Email already registered")
-            return redirect(url_for("login"))
+            return redirect(url_for("register"))
+
+        except Exception:
+            flash("Something went wrong. Try again.")
+            return redirect(url_for("register"))
 
     return render_template("register.html")
 
@@ -137,7 +153,9 @@ def promote_me():
     cur = conn.cursor()
 
     cur.execute("SELECT id FROM users WHERE email=?", ("sp6433057@gmail.com",))
-    if not cur.fetchone():
+    user = cur.fetchone()
+
+    if not user:
         conn.close()
         return "Please register first using this email."
 
@@ -145,6 +163,7 @@ def promote_me():
         "UPDATE users SET role='admin' WHERE email=?",
         ("sp6433057@gmail.com",)
     )
+
     conn.commit()
     conn.close()
     return "You are now admin. Logout and login again."
@@ -154,11 +173,13 @@ def promote_me():
 @app.route("/admin")
 def admin_dashboard():
     if session.get("role") != "admin":
+        flash("Unauthorized access")
         return redirect(url_for("login"))
 
     conn = get_db()
     students = conn.execute("SELECT * FROM students").fetchall()
     conn.close()
+
     return render_template("admin_dashboard.html", students=students)
 
 
@@ -166,14 +187,15 @@ def admin_dashboard():
 @app.route("/admin/profile", methods=["GET", "POST"])
 def admin_profile():
     if session.get("role") != "admin":
+        flash("Unauthorized access")
         return redirect(url_for("login"))
 
     conn = get_db()
 
     if request.method == "POST":
-        name = request.form.get("name")
-        department = request.form.get("department")
-        post = request.form.get("post")
+        name = request.form.get("name", "")
+        department = request.form.get("department", "")
+        post = request.form.get("post", "")
 
         photo = request.files.get("photo")
         filename = None
@@ -183,26 +205,21 @@ def admin_profile():
             photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
         admin = conn.execute(
-            "SELECT * FROM admins WHERE email=(SELECT email FROM users WHERE id=?)",
-            (session["user_id"],)
+            "SELECT * FROM admins WHERE email=?",
+            (session["user_email"],)
         ).fetchone()
 
         if admin:
             conn.execute("""
-                UPDATE admins SET name=?, department=?, post=?, photo=?
-                WHERE email=(SELECT email FROM users WHERE id=?)
-            """, (
-                name, department, post, filename,
-                session["user_id"]
-            ))
+                UPDATE admins
+                SET name=?, department=?, post=?, photo=?
+                WHERE email=?
+            """, (name, department, post, filename, session["user_email"]))
         else:
             conn.execute("""
                 INSERT INTO admins (name, department, post, photo, email)
-                VALUES (?, ?, ?, ?, (SELECT email FROM users WHERE id=?))
-            """, (
-                name, department, post, filename,
-                session["user_id"]
-            ))
+                VALUES (?,?,?,?,?)
+            """, (name, department, post, filename, session["user_email"]))
 
         conn.commit()
         conn.close()
@@ -210,8 +227,8 @@ def admin_profile():
         return redirect(url_for("admin_profile"))
 
     admin = conn.execute(
-        "SELECT * FROM admins WHERE email=(SELECT email FROM users WHERE id=?)",
-        (session["user_id"],)
+        "SELECT * FROM admins WHERE email=?",
+        (session["user_email"],)
     ).fetchone()
     conn.close()
 
@@ -222,37 +239,44 @@ def admin_profile():
 @app.route("/admin/student/add", methods=["GET", "POST"])
 def add_student():
     if session.get("role") != "admin":
+        flash("Unauthorized access")
         return redirect(url_for("login"))
 
     if request.method == "POST":
         photo = request.files.get("photo")
         filename = None
+
         if photo and photo.filename:
             filename = secure_filename(photo.filename)
             photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-        conn = get_db()
-        conn.execute("""
-            INSERT INTO students
-            (name, father_name, roll_number, registration_number,
-             email, mobile, course, semester, session, photo)
-            VALUES (?,?,?,?,?,?,?,?,?,?)
-        """, (
-            request.form.get("name"),
-            request.form.get("father_name"),
-            request.form.get("roll_number"),
-            request.form.get("registration_number"),
-            request.form.get("email"),
-            request.form.get("mobile"),
-            request.form.get("course"),
-            request.form.get("semester"),
-            request.form.get("session"),
-            filename
-        ))
-        conn.commit()
-        conn.close()
-        flash("Student added successfully")
-        return redirect(url_for("admin_dashboard"))
+        try:
+            conn = get_db()
+            conn.execute("""
+                INSERT INTO students
+                (name, father_name, roll_number, registration_number,
+                 email, mobile, course, semester, session, photo)
+                VALUES (?,?,?,?,?,?,?,?,?,?)
+            """, (
+                request.form.get("name"),
+                request.form.get("father_name"),
+                request.form.get("roll_number"),
+                request.form.get("registration_number"),
+                request.form.get("email"),
+                request.form.get("mobile"),
+                request.form.get("course"),
+                request.form.get("semester"),
+                request.form.get("session"),
+                filename
+            ))
+            conn.commit()
+            conn.close()
+            flash("Student added successfully")
+            return redirect(url_for("admin_dashboard"))
+
+        except sqlite3.IntegrityError:
+            flash("Student with this email already exists")
+            return redirect(url_for("add_student"))
 
     return render_template("add_student.html")
 
@@ -261,6 +285,7 @@ def add_student():
 @app.route("/admin/student/edit/<int:student_id>", methods=["GET", "POST"])
 def edit_student(student_id):
     if session.get("role") != "admin":
+        flash("Unauthorized access")
         return redirect(url_for("login"))
 
     conn = get_db()
@@ -270,7 +295,8 @@ def edit_student(student_id):
 
     if not student:
         conn.close()
-        return "Student not found"
+        flash("Student not found")
+        return redirect(url_for("admin_dashboard"))
 
     if request.method == "POST":
         conn.execute("""
@@ -292,6 +318,7 @@ def edit_student(student_id):
         ))
         conn.commit()
         conn.close()
+        flash("Student updated successfully")
         return redirect(url_for("admin_dashboard"))
 
     conn.close()
@@ -302,12 +329,14 @@ def edit_student(student_id):
 @app.route("/admin/student/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
     if session.get("role") != "admin":
+        flash("Unauthorized access")
         return redirect(url_for("login"))
 
     conn = get_db()
     conn.execute("DELETE FROM students WHERE id=?", (student_id,))
     conn.commit()
     conn.close()
+    flash("Student deleted successfully")
     return redirect(url_for("admin_dashboard"))
 
 
@@ -315,15 +344,13 @@ def delete_student(student_id):
 @app.route("/student-profile")
 def student_profile():
     if session.get("role") != "student":
+        flash("Unauthorized access")
         return redirect(url_for("login"))
 
     conn = get_db()
-    email = conn.execute(
-        "SELECT email FROM users WHERE id=?", (session["user_id"],)
-    ).fetchone()["email"]
-
     student = conn.execute(
-        "SELECT * FROM students WHERE email=?", (email,)
+        "SELECT * FROM students WHERE email=?",
+        (session["user_email"],)
     ).fetchone()
     conn.close()
 
@@ -337,10 +364,10 @@ def student_profile():
 @app.route("/logout")
 def logout():
     session.clear()
+    flash("Logged out successfully")
     return redirect(url_for("login"))
 
 
 # ================= RUN =================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
-
