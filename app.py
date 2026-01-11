@@ -18,8 +18,9 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # ---------------- DATABASE ----------------
 def get_db():
-    conn = sqlite3.connect(DATABASE)
+    conn = sqlite3.connect(DATABASE, timeout=10)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL;")
     return conn
 
 
@@ -67,7 +68,7 @@ def init_db():
     conn.close()
 
 
-# 🔑 CREATE TABLES ON STARTUP (CRITICAL FIX)
+# CREATE TABLES ON STARTUP
 init_db()
 
 
@@ -130,12 +131,12 @@ def register():
             return redirect(url_for("login"))
 
         except sqlite3.IntegrityError:
-            flash("Email already registered. Please login.")
+            flash("Email already registered.")
             return redirect(url_for("login"))
 
         except Exception as e:
             print("REGISTER ERROR:", e)
-            flash("Something went wrong. Try again.")
+            flash("Something went wrong.")
             return redirect(url_for("register"))
 
     return render_template("register.html")
@@ -168,6 +169,52 @@ def admin_profile():
     conn.close()
 
     return render_template("admin_profile.html", admin=admin)
+
+
+# ---------------- ADD STUDENT ----------------
+@app.route("/admin/student/add", methods=["GET", "POST"])
+def add_student():
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        photo = request.files.get("photo")
+        filename = None
+
+        if photo and photo.filename:
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+        try:
+            conn = get_db()
+            conn.execute("""
+                INSERT INTO students
+                (name, father_name, roll_number, registration_number,
+                 email, mobile, course, semester, session, photo)
+                VALUES (?,?,?,?,?,?,?,?,?,?)
+            """, (
+                request.form.get("name"),
+                request.form.get("father_name"),
+                request.form.get("roll_number"),
+                request.form.get("registration_number"),
+                request.form.get("email"),
+                request.form.get("mobile"),
+                request.form.get("course"),
+                request.form.get("semester"),
+                request.form.get("session"),
+                filename
+            ))
+            conn.commit()
+            conn.close()
+            flash("Student added successfully")
+            return redirect(url_for("admin_dashboard"))
+
+        except sqlite3.IntegrityError:
+            conn.close()
+            flash("Student with this email already exists")
+            return redirect(url_for("add_student"))
+
+    return render_template("add_student.html")
 
 
 # ---------------- EDIT STUDENT ----------------
@@ -256,78 +303,32 @@ def student_profile():
     return render_template("student_profile.html", student=student)
 
 
-# ---------------- ADD STUDENT ----------------
-@app.route("/admin/student/add", methods=["GET", "POST"])
-def admin_add_student():
-    return add_student()
-
-@app.route("/admin/student/add", methods=["GET", "POST"])
-def add_student():
-    if session.get("role") != "admin":
-        return redirect(url_for("login"))
-
-    if request.method == "POST":
-        name = request.form.get("name")
-        father_name = request.form.get("father_name")
-        roll_number = request.form.get("roll_number")
-        registration_number = request.form.get("registration_number")
-        email = request.form.get("email")
-        mobile = request.form.get("mobile")
-        course = request.form.get("course")
-        semester = request.form.get("semester")
-        session = request.form.get("session")
-
-
-        photo = request.files.get("photo")
-        filename = None
-
-        if photo and photo.filename:
-            filename = secure_filename(photo.filename)
-            photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
-        conn = get_db()
-        try:
-            conn.execute("""
-                INSERT INTO students
-                (name, father_name, roll_number, registration_number,
-                 email, mobile, course, semester, session, photo)
-                VALUES (?,?,?,?,?,?,?,?,?)
-            """, (
-                name, father_name, roll_number, registration_number,
-                email, mobile, course, semester, session, filename
-            ))
-            conn.commit()
-            conn.close()
-            flash("Student added successfully")
-            return redirect(url_for("admin_dashboard"))
-
-        except sqlite3.IntegrityError:
-            conn.close()
-            flash("Student with this email already exists")
-            return redirect(url_for("add_student"))
-
-    return render_template("add_student.html")
-
-#------------------- make admin ---------------
+# ---------------- MAKE ADMIN (ONE TIME) ----------------
 @app.route("/make-admin")
 def make_admin():
     conn = get_db()
     cur = conn.cursor()
 
+    cur.execute("SELECT id FROM users WHERE email=?", ("sp6433057@gmail.com",))
+    if cur.fetchone():
+        conn.close()
+        return "Admin already exists. Please login."
+
+    hashed_password = generate_password_hash("admin123")
+
     cur.execute("""
-    INSERT OR IGNORE INTO users (name, email, password, role)
-    VALUES (?, ?, ?, ?)
+        INSERT INTO users (name, email, password, role)
+        VALUES (?, ?, ?, ?)
     """, (
         "Sahil Patel",
         "sp6433057@gmail.com",
-        "admin123",
+        hashed_password,
         "admin"
     ))
 
     conn.commit()
     conn.close()
     return "Admin created successfully. You can now log in."
-
 
 
 # ---------------- LOGOUT ----------------
@@ -340,8 +341,3 @@ def logout():
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
-
-
-
-
-
