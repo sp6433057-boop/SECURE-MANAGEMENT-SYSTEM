@@ -303,11 +303,18 @@ def student_profile():
     return render_template("student_profile.html", student=student)
 
 
-# ---------------- PROMOTE ME ----------------
+# ---------------- PROMOTE ME (SAFE VERSION) ----------------
 @app.route("/promote-me")
 def promote_me():
     conn = get_db()
     cur = conn.cursor()
+
+    cur.execute("SELECT id FROM users WHERE email=?", ("sp6433057@gmail.com",))
+    user = cur.fetchone()
+
+    if not user:
+        conn.close()
+        return "User not registered yet."
 
     cur.execute(
         "UPDATE users SET role='admin' WHERE email=?",
@@ -316,9 +323,7 @@ def promote_me():
 
     conn.commit()
     conn.close()
-
     return "You are now an admin. Please log in again."
-
 
 
 # ---------------- LOGOUT ----------------
@@ -331,4 +336,3 @@ def logout():
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
-
