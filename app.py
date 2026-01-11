@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
-# ---------------- APP CONFIG ----------------
+# ================= APP CONFIG =================
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
@@ -16,7 +16,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 
-# ---------------- DATABASE ----------------
+# ================= DATABASE =================
 def get_db():
     conn = sqlite3.connect(DATABASE, timeout=10)
     conn.row_factory = sqlite3.Row
@@ -68,11 +68,9 @@ def init_db():
     conn.close()
 
 
-# CREATE TABLES ON STARTUP
 init_db()
 
-
-# ---------------- LOGIN ----------------
+# ================= LOGIN =================
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -85,12 +83,8 @@ def login():
         ).fetchone()
         conn.close()
 
-        if not user:
-            flash("User not found")
-            return redirect(url_for("login"))
-
-        if not check_password_hash(user["password"], password):
-            flash("Incorrect password")
+        if not user or not check_password_hash(user["password"], password):
+            flash("Invalid email or password")
             return redirect(url_for("login"))
 
         session["user_id"] = user["id"]
@@ -98,13 +92,12 @@ def login():
 
         if user["role"] == "admin":
             return redirect(url_for("admin_dashboard"))
-        else:
-            return redirect(url_for("student_profile"))
+        return redirect(url_for("student_profile"))
 
     return render_template("login.html")
 
 
-# ---------------- REGISTER ----------------
+# ================= REGISTER =================
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -116,33 +109,46 @@ def register():
             flash("All fields are required")
             return redirect(url_for("register"))
 
-        hashed_password = generate_password_hash(password)
+        hashed = generate_password_hash(password)
 
         try:
             conn = get_db()
             conn.execute(
                 "INSERT INTO users (name, email, password, role) VALUES (?,?,?,?)",
-                (name, email, hashed_password, "student")
+                (name, email, hashed, "student")
             )
             conn.commit()
             conn.close()
-
-            flash("Registration successful. Please login.")
+            flash("Registration successful")
             return redirect(url_for("login"))
-
         except sqlite3.IntegrityError:
-            flash("Email already registered.")
+            flash("Email already registered")
             return redirect(url_for("login"))
-
-        except Exception as e:
-            print("REGISTER ERROR:", e)
-            flash("Something went wrong.")
-            return redirect(url_for("register"))
 
     return render_template("register.html")
 
 
-# ---------------- ADMIN DASHBOARD ----------------
+# ================= PROMOTE ME =================
+@app.route("/promote-me")
+def promote_me():
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id FROM users WHERE email=?", ("sp6433057@gmail.com",))
+    if not cur.fetchone():
+        conn.close()
+        return "Please register first using this email."
+
+    cur.execute(
+        "UPDATE users SET role='admin' WHERE email=?",
+        ("sp6433057@gmail.com",)
+    )
+    conn.commit()
+    conn.close()
+    return "You are now admin. Logout and login again."
+
+
+# ================= ADMIN DASHBOARD =================
 @app.route("/admin")
 def admin_dashboard():
     if session.get("role") != "admin":
@@ -151,17 +157,56 @@ def admin_dashboard():
     conn = get_db()
     students = conn.execute("SELECT * FROM students").fetchall()
     conn.close()
-
     return render_template("admin_dashboard.html", students=students)
 
 
-# ---------------- ADMIN PROFILE ----------------
-@app.route("/admin/profile")
+# ================= ADMIN PROFILE =================
+@app.route("/admin/profile", methods=["GET", "POST"])
 def admin_profile():
     if session.get("role") != "admin":
         return redirect(url_for("login"))
 
     conn = get_db()
+
+    if request.method == "POST":
+        name = request.form.get("name")
+        department = request.form.get("department")
+        post = request.form.get("post")
+
+        photo = request.files.get("photo")
+        filename = None
+
+        if photo and photo.filename:
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+
+        admin = conn.execute(
+            "SELECT * FROM admins WHERE email=(SELECT email FROM users WHERE id=?)",
+            (session["user_id"],)
+        ).fetchone()
+
+        if admin:
+            conn.execute("""
+                UPDATE admins SET name=?, department=?, post=?, photo=?
+                WHERE email=(SELECT email FROM users WHERE id=?)
+            """, (
+                name, department, post, filename,
+                session["user_id"]
+            ))
+        else:
+            conn.execute("""
+                INSERT INTO admins (name, department, post, photo, email)
+                VALUES (?, ?, ?, ?, (SELECT email FROM users WHERE id=?))
+            """, (
+                name, department, post, filename,
+                session["user_id"]
+            ))
+
+        conn.commit()
+        conn.close()
+        flash("Profile updated successfully")
+        return redirect(url_for("admin_profile"))
+
     admin = conn.execute(
         "SELECT * FROM admins WHERE email=(SELECT email FROM users WHERE id=?)",
         (session["user_id"],)
@@ -171,7 +216,7 @@ def admin_profile():
     return render_template("admin_profile.html", admin=admin)
 
 
-# ---------------- ADD STUDENT ----------------
+# ================= ADD STUDENT =================
 @app.route("/admin/student/add", methods=["GET", "POST"])
 def add_student():
     if session.get("role") != "admin":
@@ -180,44 +225,37 @@ def add_student():
     if request.method == "POST":
         photo = request.files.get("photo")
         filename = None
-
         if photo and photo.filename:
             filename = secure_filename(photo.filename)
             photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-        try:
-            conn = get_db()
-            conn.execute("""
-                INSERT INTO students
-                (name, father_name, roll_number, registration_number,
-                 email, mobile, course, semester, session, photo)
-                VALUES (?,?,?,?,?,?,?,?,?,?)
-            """, (
-                request.form.get("name"),
-                request.form.get("father_name"),
-                request.form.get("roll_number"),
-                request.form.get("registration_number"),
-                request.form.get("email"),
-                request.form.get("mobile"),
-                request.form.get("course"),
-                request.form.get("semester"),
-                request.form.get("session"),
-                filename
-            ))
-            conn.commit()
-            conn.close()
-            flash("Student added successfully")
-            return redirect(url_for("admin_dashboard"))
-
-        except sqlite3.IntegrityError:
-            conn.close()
-            flash("Student with this email already exists")
-            return redirect(url_for("add_student"))
+        conn = get_db()
+        conn.execute("""
+            INSERT INTO students
+            (name, father_name, roll_number, registration_number,
+             email, mobile, course, semester, session, photo)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
+        """, (
+            request.form.get("name"),
+            request.form.get("father_name"),
+            request.form.get("roll_number"),
+            request.form.get("registration_number"),
+            request.form.get("email"),
+            request.form.get("mobile"),
+            request.form.get("course"),
+            request.form.get("semester"),
+            request.form.get("session"),
+            filename
+        ))
+        conn.commit()
+        conn.close()
+        flash("Student added successfully")
+        return redirect(url_for("admin_dashboard"))
 
     return render_template("add_student.html")
 
 
-# ---------------- EDIT STUDENT ----------------
+# ================= EDIT STUDENT =================
 @app.route("/admin/student/edit/<int:student_id>", methods=["GET", "POST"])
 def edit_student(student_id):
     if session.get("role") != "admin":
@@ -233,17 +271,10 @@ def edit_student(student_id):
         return "Student not found"
 
     if request.method == "POST":
-        filename = student["photo"]
-        photo = request.files.get("photo")
-
-        if photo and photo.filename:
-            filename = secure_filename(photo.filename)
-            photo.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-
         conn.execute("""
             UPDATE students SET
             name=?, father_name=?, roll_number=?, registration_number=?,
-            email=?, mobile=?, course=?, semester=?, session=?, photo=?
+            email=?, mobile=?, course=?, semester=?, session=?
             WHERE id=?
         """, (
             request.form.get("name"),
@@ -255,10 +286,8 @@ def edit_student(student_id):
             request.form.get("course"),
             request.form.get("semester"),
             request.form.get("session"),
-            filename,
             student_id
         ))
-
         conn.commit()
         conn.close()
         return redirect(url_for("admin_dashboard"))
@@ -267,7 +296,7 @@ def edit_student(student_id):
     return render_template("edit_student.html", student=student)
 
 
-# ---------------- DELETE STUDENT ----------------
+# ================= DELETE STUDENT =================
 @app.route("/admin/student/delete/<int:student_id>", methods=["POST"])
 def delete_student(student_id):
     if session.get("role") != "admin":
@@ -277,11 +306,10 @@ def delete_student(student_id):
     conn.execute("DELETE FROM students WHERE id=?", (student_id,))
     conn.commit()
     conn.close()
-
     return redirect(url_for("admin_dashboard"))
 
 
-# ---------------- STUDENT PROFILE ----------------
+# ================= STUDENT PROFILE =================
 @app.route("/student-profile")
 def student_profile():
     if session.get("role") != "student":
@@ -303,36 +331,13 @@ def student_profile():
     return render_template("student_profile.html", student=student)
 
 
-# ---------------- PROMOTE ME (SAFE VERSION) ----------------
-@app.route("/promote-me")
-def promote_me():
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute("SELECT id FROM users WHERE email=?", ("sp6433057@gmail.com",))
-    user = cur.fetchone()
-
-    if not user:
-        conn.close()
-        return "User not registered yet."
-
-    cur.execute(
-        "UPDATE users SET role='admin' WHERE email=?",
-        ("sp6433057@gmail.com",)
-    )
-
-    conn.commit()
-    conn.close()
-    return "You are now an admin. Please log in again."
-
-
-# ---------------- LOGOUT ----------------
+# ================= LOGOUT =================
 @app.route("/logout")
 def logout():
     session.clear()
     return redirect(url_for("login"))
 
 
-# ---------------- RUN ----------------
+# ================= RUN =================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
