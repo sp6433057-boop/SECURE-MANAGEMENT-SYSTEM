@@ -58,6 +58,7 @@ def init_db():
             mobile TEXT,
             course TEXT,
             semester TEXT,
+            session TEXT,
             photo TEXT
         )
     """)
@@ -195,7 +196,7 @@ def edit_student(student_id):
         conn.execute("""
             UPDATE students SET
             name=?, father_name=?, roll_number=?, registration_number=?,
-            email=?, mobile=?, course=?, semester=?, photo=?
+            email=?, mobile=?, course=?, semester=?, session=?, photo=?
             WHERE id=?
         """, (
             request.form.get("name"),
@@ -206,6 +207,7 @@ def edit_student(student_id):
             request.form.get("mobile"),
             request.form.get("course"),
             request.form.get("semester"),
+            request.form.get("session"),
             filename,
             student_id
         ))
@@ -269,6 +271,8 @@ def add_student():
         mobile = request.form.get("mobile")
         course = request.form.get("course")
         semester = request.form.get("semester")
+        session = request.form.get("session")
+
 
         photo = request.files.get("photo")
         filename = None
@@ -282,11 +286,11 @@ def add_student():
             conn.execute("""
                 INSERT INTO students
                 (name, father_name, roll_number, registration_number,
-                 email, mobile, course, semester, photo)
+                 email, mobile, course, semester, session, photo)
                 VALUES (?,?,?,?,?,?,?,?,?)
             """, (
                 name, father_name, roll_number, registration_number,
-                email, mobile, course, semester, filename
+                email, mobile, course, semester, session, filename
             ))
             conn.commit()
             conn.close()
@@ -322,5 +326,6 @@ def logout():
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
 
