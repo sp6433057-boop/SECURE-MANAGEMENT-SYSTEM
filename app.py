@@ -258,6 +258,10 @@ def student_profile():
 
 # ---------------- ADD STUDENT ----------------
 @app.route("/admin/student/add", methods=["GET", "POST"])
+def admin_add_student():
+    return add_student()
+
+@app.route("/admin/student/add", methods=["GET", "POST"])
 def add_student():
     if session.get("role") != "admin":
         return redirect(url_for("login"))
@@ -326,6 +330,7 @@ def logout():
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
 
 
