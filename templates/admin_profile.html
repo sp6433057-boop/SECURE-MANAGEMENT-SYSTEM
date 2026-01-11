@@ -11,20 +11,18 @@
 
     <h2>Admin Profile</h2>
 
-    <!-- ADMIN PHOTO -->
+    <!-- ADMIN PHOTO (LEFT ALIGNED) -->
     <div class="photo-section">
-        {% if admin and admin.photo %}
-            <img
-                src="{{ url_for('static', filename='uploads/' ~ admin.photo) }}"
-                alt="Admin Photo"
-                style="
-                    width:120px;
-                    height:160px;
-                    object-fit:cover;
-                    border-radius:6px;
-                    border:2px solid #4CAF50;
-                    display:block;
-                    margin:0 auto 15px auto;
+        {% if admin.photo %}
+        <img
+            src="{{ url_for('static', filename='uploads/' ~ admin.photo) }}"
+            alt="admin Photo"
+            style="
+                width:120px;
+                height:160px;
+                object-fit:cover;
+                border:2px solid #4CAF50;
+                border-radius:6px;
                 ">
         {% else %}
             <p class="no-photo">No photo uploaded</p>
@@ -74,3 +72,4 @@
 
 </body>
 </html>
+
