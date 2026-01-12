@@ -73,20 +73,24 @@
                     <td>{{ student.session }}</td>
 
                     <!-- ACTIONS (NOW ALWAYS VISIBLE) -->
-                    <td>
-                        <a href="{{ url_for('edit_student', student_id=student.id) }}"
-                           class="btn small-btn">Edit</a>
+                    <td style="white-space:nowrap; text-align:center;">
+    <a href="{{ url_for('edit_student', student_id=student.id) }}"
+       class="btn small-btn"
+       style="margin-bottom:6px; display:inline-block;">
+       Edit
+    </a>
 
-                        <form action="{{ url_for('delete_student', student_id=student.id) }}"
-                              method="POST"
-                              style="display:inline;">
-                            <button type="submit"
-                                    class="btn small-btn danger-btn"
-                                    onclick="return confirm('Delete this student?')">
-                                Delete
-                            </button>
-                        </form>
-                    </td>
+    <form action="{{ url_for('delete_student', student_id=student.id) }}"
+          method="POST"
+          style="margin-top:6px;">
+        <button type="submit"
+                class="btn small-btn danger-btn"
+                onclick="return confirm('Delete this student?')">
+            Delete
+        </button>
+    </form>
+</td>
+
 
                 </tr>
                 {% endfor %}
@@ -99,3 +103,4 @@
 
 </body>
 </html>
+
