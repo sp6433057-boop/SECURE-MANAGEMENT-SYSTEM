@@ -59,6 +59,7 @@ def init_db():
             mobile TEXT,
             course TEXT,
             semester TEXT,
+            branch TEXT,
             session TEXT,
             photo TEXT
         )
@@ -255,8 +256,8 @@ def add_student():
             conn.execute("""
                 INSERT INTO students
                 (name, father_name, roll_number, registration_number,
-                 email, mobile, course, semester, session, photo)
-                VALUES (?,?,?,?,?,?,?,?,?,?)
+                 email, mobile, course, branch, semester, session, photo)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?)
             """, (
                 request.form.get("name"),
                 request.form.get("father_name"),
@@ -265,6 +266,7 @@ def add_student():
                 request.form.get("email"),
                 request.form.get("mobile"),
                 request.form.get("course"),
+                request.form.get("branch"),
                 request.form.get("semester"),
                 request.form.get("session"),
                 filename
@@ -302,7 +304,7 @@ def edit_student(student_id):
         conn.execute("""
             UPDATE students SET
             name=?, father_name=?, roll_number=?, registration_number=?,
-            email=?, mobile=?, course=?, semester=?, session=?
+            email=?, mobile=?, course=?, branch=?, semester=?, session=?
             WHERE id=?
         """, (
             request.form.get("name"),
@@ -312,6 +314,7 @@ def edit_student(student_id):
             request.form.get("email"),
             request.form.get("mobile"),
             request.form.get("course"),
+            request.form.get("branch"),
             request.form.get("semester"),
             request.form.get("session"),
             student_id
@@ -371,3 +374,4 @@ def logout():
 # ================= RUN =================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
