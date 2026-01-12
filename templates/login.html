@@ -12,18 +12,25 @@
     <input type="email"
            name="email"
            placeholder="Email"
-           required>
+           required
+           style="width:250px;">
     <br><br>
 
-    <div style="position: relative; width: 220px;">
+    <div style="position:relative; width:250px;">
         <input type="password"
                id="loginPassword"
                name="password"
                placeholder="Password"
                required
-               style="width:100%; padding-right:30px;">
-        <span onclick="togglePassword()"
-              style="position:absolute; right:8px; top:6px; cursor:pointer;">
+               style="width:100%; padding-right:35px;">
+        <span onclick="toggleLoginPassword()"
+              style="
+                position:absolute;
+                right:10px;
+                top:50%;
+                transform:translateY(-50%);
+                cursor:pointer;
+                user-select:none;">
             👁️
         </span>
     </div>
@@ -38,7 +45,7 @@
 <a href="{{ url_for('register') }}">Register</a>
 
 <script>
-function togglePassword() {
+function toggleLoginPassword() {
     const pwd = document.getElementById("loginPassword");
     pwd.type = pwd.type === "password" ? "text" : "password";
 }
