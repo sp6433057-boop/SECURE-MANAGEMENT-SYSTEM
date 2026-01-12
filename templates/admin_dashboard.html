@@ -13,29 +13,29 @@
 
     <!-- TOP ACTIONS -->
     <div class="admin-actions">
-        <a href="{{ url_for('add_student') }}" class="btn">➕ Add Student</a>
-        <a href="{{ url_for('admin_profile') }}" class="btn">👤 My Profile</a>
-        <a href="{{ url_for('logout') }}" class="btn logout-btn">🚪 Logout</a>
+        <a href="{{ url_for('add_student') }}" class="btn small-btn">➕ Add Student</a>
+        <a href="{{ url_for('admin_profile') }}" class="btn small-btn">👤 My Profile</a>
+        <a href="{{ url_for('logout') }}" class="btn small-btn logout-btn">🚪 Logout</a>
     </div>
 
     <!-- STUDENT TABLE -->
     <div class="table-container">
         <table class="student-table">
+
             <thead>
                 <tr>
-                    <th>Photo</th>
+                    <th style="width:90px;">Photo</th>
                     <th>Name</th>
                     <th>Father Name</th>
                     <th>Roll No</th>
-                    <th>Registration No</th>
+                    <th>Reg No</th>
                     <th>Email</th>
                     <th>Mobile</th>
                     <th>Course</th>
-                    <th>branch</th>
+                    <th>Branch</th>
                     <th>Semester</th>
                     <th>Session</th>
-
-                    <th>Actions</th>
+                    <th style="width:130px;">Actions</th>
                 </tr>
             </thead>
 
@@ -43,21 +43,19 @@
                 {% for student in students %}
                 <tr>
 
-                    <!-- PHOTO (INLINE SIZE – FINAL FIX) -->
-                    <td style="width:80px;">
+                    <!-- PHOTO -->
+                    <td>
                         {% if student.photo %}
-                        <img
-                            src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
-                            alt="Student Photo"
-                            style="
+                        <img src="{{ url_for('static', filename='uploads/' ~ student.photo) }}"
+                             alt="Student Photo"
+                             style="
                                 width:60px;
                                 height:80px;
                                 object-fit:cover;
-                                border:2px solid #4CAF50;
                                 border-radius:4px;
+                                border:2px solid #4CAF50;
                                 display:block;
-                                margin:auto;
-                            ">
+                                margin:auto;">
                         {% else %}
                         N/A
                         {% endif %}
@@ -74,7 +72,7 @@
                     <td>{{ student.semester }}</td>
                     <td>{{ student.session }}</td>
 
-
+                    <!-- ACTIONS (NOW ALWAYS VISIBLE) -->
                     <td>
                         <a href="{{ url_for('edit_student', student_id=student.id) }}"
                            class="btn small-btn">Edit</a>
@@ -93,6 +91,7 @@
                 </tr>
                 {% endfor %}
             </tbody>
+
         </table>
     </div>
 
@@ -100,5 +99,3 @@
 
 </body>
 </html>
-
-
