@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -283,6 +284,74 @@ def add_student():
     return render_template("add_student.html")
 
 
+
+
+# ================= UPLOAD EXCEL =================
+@app.route("/admin/student/upload-excel", methods=["GET", "POST"])
+def upload_excel():
+    if session.get("role") != "admin":
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        file = request.files.get("excel_file")
+
+        if not file or file.filename == "":
+            flash("No file selected")
+            return redirect(url_for("upload_excel"))
+
+        if not file.filename.endswith(".xlsx"):
+            flash("Please upload a valid Excel (.xlsx) file")
+            return redirect(url_for("upload_excel"))
+
+        try:
+            df = pd.read_excel(file)
+
+            required_columns = [
+                "name", "father_name", "roll_number",
+                "registration_number", "email", "mobile",
+                "course", "branch", "semester", "session"
+            ]
+
+            for col in required_columns:
+                if col not in df.columns:
+                    flash(f"Missing column: {col}")
+                    return redirect(url_for("upload_excel"))
+
+            conn = get_db()
+
+            for _, row in df.iterrows():
+                conn.execute("""
+                    INSERT OR IGNORE INTO students
+                    (name, father_name, roll_number, registration_number,
+                     email, mobile, course, branch, semester, session)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    str(row["name"]).strip(),
+                    str(row["father_name"]).strip(),
+                    str(row["roll_number"]).strip(),
+                    str(row["registration_number"]).strip(),
+                    str(row["email"]).strip(),
+                    str(row["mobile"]).strip(),
+                    str(row["course"]).strip(),
+                    str(row["branch"]).strip(),
+                    str(row["semester"]).strip(),
+                    str(row["session"]).strip()
+                ))
+
+            conn.commit()
+            conn.close()
+
+            flash("Students uploaded successfully")
+            return redirect(url_for("admin_dashboard"))
+
+        except Exception as e:
+            print("EXCEL UPLOAD ERROR:", e)
+            flash("Error processing Excel file")
+            return redirect(url_for("upload_excel"))
+
+    return render_template("upload_excel.html")
+
+
 # ================= EDIT STUDENT =================
 @app.route("/admin/student/edit/<int:student_id>", methods=["GET", "POST"])
 def edit_student(student_id):
@@ -374,4 +443,5 @@ def logout():
 # ================= RUN =================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
