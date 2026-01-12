@@ -11,6 +11,26 @@
 
     <h2>Admin Dashboard</h2>
 
+    <!-- SEARCH BAR -->
+<form method="GET"
+      action="{{ url_for('admin_dashboard') }}"
+      style="margin: 15px 0; text-align:left;">
+
+    <input type="text"
+           name="search"
+           placeholder="Search by name, roll, reg no, email, branch"
+           value="{{ search if search else '' }}"
+           style="padding:8px; width:260px;">
+
+    <button type="submit" class="btn small-btn">Search</button>
+
+    {% if search %}
+        <a href="{{ url_for('admin_dashboard') }}"
+           class="btn small-btn logout-btn">Clear</a>
+    {% endif %}
+</form>
+
+
     <!-- TOP ACTIONS -->
     <div class="admin-actions">
         <a href="{{ url_for('add_student') }}" class="btn small-btn">➕ Add Student</a>
@@ -104,5 +124,6 @@
 
 </body>
 </html>
+
 
 
