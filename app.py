@@ -178,11 +178,35 @@ def admin_dashboard():
         flash("Unauthorized access")
         return redirect(url_for("login"))
 
+    search = request.args.get("search", "").strip()
     conn = get_db()
-    students = conn.execute("SELECT * FROM students").fetchall()
+
+    if search:
+        students = conn.execute("""
+            SELECT * FROM students
+            WHERE name LIKE ?
+               OR roll_number LIKE ?
+               OR registration_number LIKE ?
+               OR email LIKE ?
+               OR branch LIKE ?
+        """, (
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%",
+            f"%{search}%"
+        )).fetchall()
+    else:
+        students = conn.execute("SELECT * FROM students").fetchall()
+
     conn.close()
 
-    return render_template("admin_dashboard.html", students=students)
+    return render_template(
+        "admin_dashboard.html",
+        students=students,
+        search=search
+    )
+
 
 
 # ================= ADMIN PROFILE =================
@@ -443,5 +467,6 @@ def logout():
 # ================= RUN =================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
+
 
 
