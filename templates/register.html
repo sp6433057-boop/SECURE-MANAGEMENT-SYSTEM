@@ -7,50 +7,68 @@
         body {
             margin: 0;
             height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: "Segoe UI", Arial, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
 
-            /* 🎨 Animated Gradient Background */
             background: linear-gradient(
-                -45deg,
-                #4CAF50,
-                #81C784,
-                #66BB6A,
-                #A5D6A7
+                135deg,
+                #ffffff,
+                #f4f6f8,
+                #ffffff,
+                #eef1f4
             );
-            background-size: 400% 400%;
-            animation: gradientMove 10s ease infinite;
+            background-size: 600% 600%;
+            animation: bgMove 12s ease infinite;
         }
 
-        @keyframes gradientMove {
+        @keyframes bgMove {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
-        /* 🧾 Register Card */
         .register-box {
             background: white;
-            padding: 30px;
+            padding: 35px 30px;
             width: 360px;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+            border-radius: 14px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
             text-align: center;
+            animation: cardIn 0.6s ease;
+        }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shake {
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            50% { transform: translateX(6px); }
+            75% { transform: translateX(-6px); }
+            100% { transform: translateX(0); }
         }
 
         h2 {
-            margin-bottom: 15px;
-            color: #333;
+            margin-bottom: 20px;
+            color: #2c2c2c;
         }
 
         input {
             width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
+            padding: 11px 40px 11px 12px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: 1px solid #d0d7de;
+            font-size: 14px;
+            box-sizing: border-box;
         }
 
         .password-box {
@@ -63,35 +81,88 @@
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
+            opacity: 0.6;
         }
+
+        /* 🔐 Strength meter */
+        .strength {
+            height: 6px;
+            border-radius: 4px;
+            background: #e0e0e0;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .strength div {
+            height: 100%;
+            width: 0;
+            transition: width 0.3s;
+        }
+
+        .weak { background: #e53935; }
+        .medium { background: #fb8c00; }
+        .strong { background: #43a047; }
 
         button {
             width: 100%;
-            padding: 10px;
-            background: #4CAF50;
+            padding: 12px;
+            background: linear-gradient(135deg, #4CAF50, #43a047);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 16px;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
-        button:hover {
-            background: #43a047;
+        button:disabled {
+            opacity: 0.85;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid white;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .msg {
-            background: #fdecea;
-            color: #c62828;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 18px;
             font-size: 14px;
+            animation: popup 0.4s ease;
+        }
+
+        .msg.error {
+            background: #fdecea;
+            color: #b3261e;
+        }
+
+        .msg.success {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+
+        @keyframes popup {
+            from { opacity: 0; transform: translateY(-10px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         a {
             color: #4CAF50;
-            font-weight: bold;
+            font-weight: 500;
             text-decoration: none;
         }
     </style>
@@ -99,11 +170,10 @@
 
 <body>
 
-<div class="register-box">
+<div class="register-box" id="registerBox">
 
-    <h2>Register</h2>
+    <h2>Create Account</h2>
 
-    <!-- 🔔 FLASH MESSAGES -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         {% for msg in messages %}
@@ -112,31 +182,34 @@
       {% endif %}
     {% endwith %}
 
-    <form method="POST">
+    <form method="POST" onsubmit="startLoading()">
 
-        <input type="text"
-               name="name"
-               placeholder="Full Name"
-               required>
+        <input type="text" name="name" placeholder="Full Name" required>
 
-        <input type="email"
-               name="email"
-               placeholder="Email"
-               required>
+        <input type="email" name="email" placeholder="Email address" required>
 
         <div class="password-box">
             <input type="password"
                    id="registerPassword"
                    name="password"
                    placeholder="Password"
-                   required>
-            <span onclick="togglePassword()">👁️</span>
+                   required
+                   oninput="checkStrength(this.value)">
+            <span onclick="togglePassword()">👁</span>
         </div>
 
-        <button type="submit">Register</button>
+        <!-- Strength Meter -->
+        <div class="strength">
+            <div id="strengthBar"></div>
+        </div>
+
+        <button type="submit" id="registerBtn">
+            <span id="btnText">Register</span>
+            <span class="spinner" id="spinner"></span>
+        </button>
     </form>
 
-    <p style="margin-top:15px;">
+    <p style="margin-top:18px;">
         Already have an account?
         <a href="{{ url_for('login') }}">Login</a>
     </p>
@@ -147,6 +220,51 @@
 function togglePassword() {
     const pwd = document.getElementById("registerPassword");
     pwd.type = pwd.type === "password" ? "text" : "password";
+}
+
+/* 🔐 Password strength */
+function checkStrength(value) {
+    const bar = document.getElementById("strengthBar");
+    let strength = 0;
+
+    if (value.length >= 8) strength++;
+    if (/[A-Z]/.test(value)) strength++;
+    if (/[0-9]/.test(value)) strength++;
+    if (/[^A-Za-z0-9]/.test(value)) strength++;
+
+    bar.className = "";
+    if (strength <= 1) {
+        bar.style.width = "25%";
+        bar.classList.add("weak");
+    } else if (strength <= 3) {
+        bar.style.width = "60%";
+        bar.classList.add("medium");
+    } else {
+        bar.style.width = "100%";
+        bar.classList.add("strong");
+    }
+}
+
+/* 🔄 Loading */
+function startLoading() {
+    document.getElementById("btnText").innerText = "Creating account...";
+    document.getElementById("spinner").style.display = "inline-block";
+    document.getElementById("registerBtn").disabled = true;
+}
+
+/* ✅ Detect success & auto redirect */
+const msg = document.querySelector(".msg");
+if (msg) {
+    const text = msg.innerText.toLowerCase();
+    if (text.includes("success") || text.includes("created") || text.includes("registered")) {
+        msg.classList.add("success");
+        setTimeout(() => {
+            window.location.href = "{{ url_for('login') }}";
+        }, 2500);
+    } else {
+        msg.classList.add("error");
+        document.getElementById("registerBox").classList.add("shake");
+    }
 }
 </script>
 
